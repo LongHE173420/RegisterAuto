@@ -6,7 +6,6 @@ export class Log {
     private static root: PinoLogger;
     private static initialized = false;
 
-    /* ================= INIT (như logback.xml) ================= */
 
     static init(opts?: {
         appName?: string;
@@ -29,11 +28,10 @@ export class Log {
         this.initialized = true;
     }
 
-    /* ================= LOGGER FACTORY ================= */
 
     static getLogger(name: string) {
         if (!this.initialized) {
-            this.init(); // auto-init an toàn
+            this.init();
         }
 
         const logger = this.root.child({ logger: name });

@@ -22,7 +22,6 @@ import {
   loadCsvRecords,
 } from "../utils/csv-helpers";
 
-/* ================= LOGGER & CONTEXT ================= */
 
 export type AppLogger = {
   info: (obj: any, msg?: string) => void;
@@ -37,7 +36,6 @@ export type WorkerCtx = {
   logger: AppLogger;
 };
 
-/* ================= WORKER CLASS ================= */
 
 export class RegisterCsvWorker {
   private readonly appLogger: AppLogger;
@@ -62,7 +60,6 @@ export class RegisterCsvWorker {
     this.verifyRetry = Number(ENV.OTP_VERIFY_RETRY ?? 5);
   }
 
-  /* ================= PUBLIC API ================= */
 
   async run(filePath: string) {
     const records = loadCsvRecords(filePath);
@@ -85,8 +82,6 @@ export class RegisterCsvWorker {
       skipped: this.skipped,
     };
   }
-
-  /* ================= INTERNAL ================= */
 
   private buildRequestHeaders(deviceId: string) {
     return buildHeaders(deviceId);
@@ -133,7 +128,6 @@ export class RegisterCsvWorker {
         throw new Error(`REGISTER_FAIL: ${msg}`);
       }
 
-      // Wait OTP
       const otpRec = await waitForOtpViaAuthServiceDebug(
         phone,
         headers,
@@ -178,7 +172,6 @@ export class RegisterCsvWorker {
     throw new Error(`VERIFY_FAIL_AFTER_RETRY: ${lastMsg}`);
   }
 
-  /* ================= AUDIT ================= */
 
   private async auditPending(phone: string) {
     const userId = await findUserIdByPhone(phone).catch(() => null);
