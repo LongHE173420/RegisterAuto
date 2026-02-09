@@ -4,7 +4,7 @@ import { ENV } from "./config/env";
 import { cleanupOldLogs, getTodayLogPath } from "./config/logFile";
 import { ensureLogRow } from "./repo/log.repo";
 import { createFileLogger } from "./config/logger";
-import { registerFromCsv } from "./services/register-from-csv.service";
+import { RegisterCsvWorker } from "./services/register-from-csv.service";
 
 let isRunning = false;
 let watchTimer: NodeJS.Timeout | null = null;
@@ -21,7 +21,7 @@ async function runOnce(reason: string) {
       const logger = createFileLogger(filePath);
       logger.warn({ reason }, "JOB_SKIPPED_ALREADY_RUNNING");
     } catch {
-   
+
     }
     return;
   }
@@ -86,7 +86,8 @@ async function runOnce(reason: string) {
     );
 
     const ctx = { logId, logger };
-    const reg = await registerFromCsv(csvPath, ctx);
+    const worker = new RegisterCsvWorker(ctx);
+    const reg = await worker.run(csvPath);
 
     logger.info({ reg }, "JOB_DONE");
 
@@ -96,7 +97,7 @@ async function runOnce(reason: string) {
   } catch (err: any) {
     try {
       const { filePath } = getTodayLogPath();
-      const logger = createFileLogger(filePath); 
+      const logger = createFileLogger(filePath);
       logger.error({ reason, csvPath, err }, "JOB_CRASH");
     } catch {
       // ignore
@@ -117,10 +118,10 @@ export async function startWorker() {
   setInterval(() => runOnce("interval"), ENV.INTERVAL_MS);
 
   if (fs.existsSync(csvPath)) {
-    
+
     try {
       const { filePath } = getTodayLogPath();
-      const logger = createFileLogger(filePath); 
+      const logger = createFileLogger(filePath);
       logger.info({ csvPath }, "CSV_WATCH_START");
     } catch {
     }
@@ -134,7 +135,7 @@ export async function startWorker() {
   } else {
     try {
       const { filePath } = getTodayLogPath();
-      const logger = createFileLogger(filePath); 
+      const logger = createFileLogger(filePath);
       logger.warn({ csvPath }, "CSV_NOT_FOUND_AT_STARTUP");
     } catch {
       // ignore
